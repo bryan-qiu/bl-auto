@@ -2,18 +2,21 @@ const puppeteer = require("puppeteer");
 const moment = require("moment-timezone");
 
 (async () => {
-  // Determine current Eastern Time
-  const now = moment().tz("America/New_York");
+  const manualRun = process.env.MANUAL_RUN === "true";
 
-  const isSunday = now.format("dddd") === "Sunday";
-  const isMidnight = now.format("HH:mm") === "00:00";
+  if (!manualRun) {
+    // DST-aware check
+    const now = moment().tz("America/New_York");
+    const isSunday = now.format("dddd") === "Sunday";
+    const isMidnight = now.format("HH:mm") === "00:00";
 
-  if (!isSunday || !isMidnight) {
-    console.log(`Skipping — current Eastern time is ${now.format()}`);
-    process.exit(0);
+    if (!isSunday || !isMidnight) {
+      console.log(`Skipping scheduled run — current Eastern time is ${now.format()}`);
+      process.exit(0);
+    }
+  } else {
+    console.log("Manual trigger detected — running regardless of time.");
   }
-
-  console.log(`Running login — current Eastern time is ${now.format()}`);
 
   const accounts = JSON.parse(process.env.BL_ACCOUNTS);
 
@@ -41,7 +44,7 @@ const moment = require("moment-timezone");
 
       await Promise.all([
         page.click("#LoginButton"),
-        page.waitForNavigation({ waitUntil: "networkidle2" })
+        page.waitForNavigation({ waitUntil: "networkidle2" }),
       ]);
 
       console.log(`${account.username}: Login successful.`);
