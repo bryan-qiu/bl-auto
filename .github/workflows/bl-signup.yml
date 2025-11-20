@@ -20,7 +20,7 @@ jobs:
           node-version: 20
 
       - name: Install dependencies
-        run: npm install puppeteer moment-timezone
+        run: npm install puppeteer-extra puppeteer-extra-plugin-stealth puppeteer moment-timezone
 
       - name: Run login script
         env:
