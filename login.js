@@ -5,7 +5,6 @@ const moment = require("moment-timezone");
   const manualRun = process.env.MANUAL_RUN === "true";
 
   if (!manualRun) {
-    // DST-aware check
     const now = moment().tz("America/New_York");
     const isSunday = now.format("dddd") === "Sunday";
     const isMidnight = now.format("HH:mm") === "00:00";
@@ -36,12 +35,23 @@ const moment = require("moment-timezone");
         { waitUntil: "networkidle2" }
       );
 
-      await page.waitForSelector("#UserName");
-      await page.waitForSelector("#Password");
+      // Wait for username and password fields to be visible
+      await page.waitForSelector("#UserName", { visible: true });
+      await page.waitForSelector("#Password", { visible: true });
 
-      await page.type("#UserName", account.username, { delay: 20 });
-      await page.type("#Password", account.password, { delay: 20 });
+      // Enter username
+      await page.focus("#UserName");
+      await page.keyboard.type(account.username, { delay: 20 });
 
+      // Enter password using evaluate (bypasses input issues)
+      await page.evaluate((pwd) => {
+        document.querySelector("#Password").value = pwd;
+      }, account.password);
+
+      // Optional: wait a tiny bit to make sure JS picks up the value
+      await page.waitForTimeout(100);
+
+      // Click login and wait for navigation
       await Promise.all([
         page.click("#LoginButton"),
         page.waitForNavigation({ waitUntil: "networkidle2" }),
@@ -50,7 +60,6 @@ const moment = require("moment-timezone");
       console.log(`${account.username}: Login successful.`);
 
       await page.screenshot({ path: `${account.username}.png` });
-
     } catch (err) {
       console.error(`${account.username}: Login failed.`, err);
     } finally {
