@@ -1,0 +1,35 @@
+name: BuildingLink Sign Up
+
+on:
+  schedule:
+    # Every Sunday at 12 AM Eastern Time (midnight)
+    - cron: "0 4 * * 0"  # Midnight EDT
+    - cron: "0 5 * * 0"  # Midnight EST
+  workflow_dispatch:
+
+jobs:
+  run-login:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Puppeteer
+        run: npm install puppeteer
+
+      - name: Run login script
+        env:
+          BL_ACCOUNTS: ${{ secrets.BL_ACCOUNTS }}
+        run: node login.js
+
+      - name: Upload screenshots
+        uses: actions/upload-artifact@v4
+        with:
+          name: login-screenshots
+          path: "*.png"
