@@ -43,13 +43,13 @@ const moment = require("moment-timezone");
       await page.focus("#UserName");
       await page.keyboard.type(account.username, { delay: 20 });
 
-      // Enter password using evaluate (bypasses input issues)
+      // Enter password using evaluate
       await page.evaluate((pwd) => {
         document.querySelector("#Password").value = pwd;
       }, account.password);
-
-      // Optional: wait a tiny bit to make sure JS picks up the value
-      await page.waitForTimeout(100);
+      
+      // Tiny wait to ensure JS detects input
+      await new Promise(resolve => setTimeout(resolve, 100));
 
       // Click login and wait for navigation
       await Promise.all([
