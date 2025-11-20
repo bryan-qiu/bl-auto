@@ -1,11 +1,10 @@
-name: BuildingLink Sign Up
+name: BuildingLink Auto Login (DST-Aware)
 
 on:
   schedule:
-    # Every Sunday at 12 AM Eastern Time (midnight)
-    - cron: "0 4 * * 0"  # Midnight EDT
-    - cron: "0 5 * * 0"  # Midnight EST
-  workflow_dispatch:
+    - cron: "0 4 * * *"   # Run daily 04:00 UTC
+    - cron: "0 5 * * *"   # Run daily 05:00 UTC
+  workflow_dispatch:      # Manual trigger
 
 jobs:
   run-login:
@@ -20,12 +19,13 @@ jobs:
         with:
           node-version: 20
 
-      - name: Install Puppeteer
-        run: npm install puppeteer
+      - name: Install dependencies
+        run: npm install puppeteer moment-timezone
 
       - name: Run login script
         env:
           BL_ACCOUNTS: ${{ secrets.BL_ACCOUNTS }}
+          MANUAL_RUN: ${{ github.event_name == 'workflow_dispatch' }}
         run: node login.js
 
       - name: Upload screenshots
