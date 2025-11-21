@@ -1,10 +1,15 @@
-name: BuildingLink Auto Login (DST-Aware)
+name: BuildingLink Reserve
 
 on:
   schedule:
     - cron: "0 4 * * *"   # Run daily 04:00 UTC
     - cron: "0 5 * * *"   # Run daily 05:00 UTC
-  workflow_dispatch:      # Manual trigger
+  workflow_dispatch:
+    inputs:
+      start_hour:
+        description: 'Optional start hour (24-hour format)'
+        required: false
+        default: '11'
 
 jobs:
   run-login:
@@ -26,6 +31,7 @@ jobs:
         env:
           BL_ACCOUNTS: ${{ secrets.BL_ACCOUNTS }}
           MANUAL_RUN: ${{ github.event_name == 'workflow_dispatch' }}
+          START_HOUR: ${{ github.event.inputs.start_hour || '11' }}
         run: node login.js
 
       - name: Upload screenshots
