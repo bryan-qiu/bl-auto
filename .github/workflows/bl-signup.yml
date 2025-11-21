@@ -7,9 +7,13 @@ on:
   workflow_dispatch:
     inputs:
       start_hour:
-        description: 'Optional start hour (24-hour format)'
+        description: "Reservation start hour (24-hour format)"
         required: false
-        default: '11'
+        default: "11"
+      reserve_date:
+        description: "Reservation date (MM/DD/YYYY). Leave blank for next coming Saturday (Eastern Time)."
+        required: false
+        default: ""
 
 jobs:
   run-login:
@@ -27,11 +31,23 @@ jobs:
       - name: Install dependencies
         run: npm install puppeteer-extra puppeteer-extra-plugin-stealth puppeteer moment-timezone
 
+      - name: Determine reservation date (Eastern Time)
+        id: datecalc
+        run: |
+          if [ -n "${{ github.event.inputs.reserve_date }}" ]; then
+            echo "date=${{ github.event.inputs.reserve_date }}" >> $GITHUB_OUTPUT
+          else
+            # Compute next coming Saturday in America/New_York timezone
+            TZ="America/New_York" next_sat=$(date -d "next saturday" +"%m/%d/%Y")
+            echo "date=$next_sat" >> $GITHUB_OUTPUT
+          fi
+
       - name: Run login script
         env:
           BL_ACCOUNTS: ${{ secrets.BL_ACCOUNTS }}
           MANUAL_RUN: ${{ github.event_name == 'workflow_dispatch' }}
           START_HOUR: ${{ github.event.inputs.start_hour || '11' }}
+          RESERVE_DATE: ${{ steps.datecalc.outputs.date }}
         run: node login.js
 
       - name: Upload screenshots
