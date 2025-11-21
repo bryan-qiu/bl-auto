@@ -80,6 +80,14 @@ puppeteer.use(StealthPlugin());
         { visible: true, timeout: 15000 }
       );
 
+      // Scroll to the start time picker if necessary
+      await page.evaluate(() => {
+        const timePicker = document.querySelector("#ctl00_ContentPlaceHolder1_StartTimePicker_dateInput");
+        if (timePicker) {
+          timePicker.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      });
+
       // -----------------------------
       // Set reservation time dynamically
       // -----------------------------
